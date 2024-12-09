@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "app/screens/Alphabet.jsx", "app/screens/course.jsx", "app/screens/home.jsx", "app/screens/Login.jsx", "app/screens/Onboarding1.jsx", "app/screens/Onboarding2.jsx", "app/screens/Onboarding3.jsx", "app/screens/SignUp.jsx", "app/screens/success.jsx", "app/(tabs)/index.jsx"  ]
 }
