@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ScrollView, ImageBackground } from 'react-native';
 import * as Speech from 'expo-speech'; // Importing expo-speech
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,34 +22,54 @@ const colors = [
 ];
 
 const ColorsScreen = () => {
-  // Function to speak the color name
-  const speakColor = (colorName) => {
-    Speech.speak(colorName);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Debounce function to limit the number of times the color name is spoken
+  const debounce = (func, delay) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), delay);
+    };
   };
+
+  // Function to speak the color name
+  const speakColor = useCallback((colorName) => {
+    if (isSpeaking) return; // Prevent overlapping speech
+    setIsSpeaking(true); // Lock speech
+    Speech.speak(colorName, {
+      onDone: () => setIsSpeaking(false), // Unlock speech when done
+      onError: () => setIsSpeaking(false), // Handle errors and unlock
+    });
+  }, [isSpeaking]);
+
+  // Apply the debounce to the speakColor function with 100ms delay
+  const debouncedSpeakColor = debounce(speakColor, 100);
 
   return (
     <ImageBackground
       source={require('../../assets/images/Colours.jpg')} // Background image
       style={styles.backgroundImage}
+      imageStyle={{ opacity: 0.7 }}
     >
       <SafeAreaView>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.grid}>
-          {colors.map((color, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.colorContainer, { backgroundColor: color.code }]}
-              onPress={() => speakColor(color.name)} // Speak the color name when pressed
-            >
-              <Text
-                style={[styles.colorText, { color: color.name === 'White' ? '#000' : '#FFF' }]} // Adjust text color for white background
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.grid}>
+            {colors.map((color, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.colorContainer, { backgroundColor: color.code }]}
+                onPress={() => debouncedSpeakColor(color.name)} // Speak the color name when pressed
               >
-                {color.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+                <Text
+                  style={[styles.colorText, { color: color.name === 'White'? '#000' : '#FFF' }]} // Adjust text color for white background
+                >
+                  {color.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -60,7 +80,7 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: 'cover', // Adjusts how the image is resized to fill the screen
   },
-  scrollContainer:{
+  scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',

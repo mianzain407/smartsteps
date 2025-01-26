@@ -11,8 +11,9 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig'; // Ensure this path matches your setup
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 const { width, height } = Dimensions.get('window');
 
@@ -35,6 +36,12 @@ export default function LogInScreen() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('User logged in:', userCredential.user);
+
+      // Get the ID token after successful login
+      const token = await userCredential.user.getIdToken();
+      
+      // Save the token to AsyncStorage
+      await AsyncStorage.setItem('userToken', token);
 
       // Navigate to home screen after successful login
       router.push('../screens/home'); // Adjust this path as necessary
@@ -130,7 +137,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: Math.min(width * 0.045, 16),
     color: '#8D99AE',
-    textAlign:'center',
+    textAlign: 'center',
     marginBottom: height * 0.05,
   },
   label: {

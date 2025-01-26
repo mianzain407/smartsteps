@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, Dimensions, SafeAreaView, AppState } from 'react-native';
-import { useRouter } from 'expo-router'; // Adjust based on your navigation library
+import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, Dimensions, SafeAreaView, AppState, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
@@ -8,29 +8,48 @@ const { width } = Dimensions.get('window');
 export default function Home() {
   const router = useRouter();
 
-  // State to store time spent and app state
+  // State to store time spent, app state, and user's first name
   const [timeSpent, setTimeSpent] = useState(0);
   const [appState, setAppState] = useState(AppState.currentState);
+  const [firstName, setFirstName] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
 
   // Learning Plan Options
   const learningPlan = [
     { title: 'Learning', path: '../screens/course' },
     { title: 'Video Learning', path: '../screens/videoLearning' },
-    { title: 'Games', path: '../screens/course' },
+    { title: 'Games', path: '../screens/test' },
     { title: 'Quiz', path: '../screens/Quiz' },
-    { title: 'Report', path: '../screens/course' },
+    { title: 'Report', path: '../screens/report' },
   ];
 
   useEffect(() => {
-    // Load the saved time when the app starts
-    const loadTime = async () => {
-      const savedTime = await AsyncStorage.getItem('timeSpent');
-      if (savedTime) {
-        setTimeSpent(parseInt(savedTime, 10));
+    // Load the saved time, user data, and profile image when the app starts
+    const loadUserData = async () => {
+      try {
+        const savedTime = await AsyncStorage.getItem('timeSpent');
+        if (savedTime) {
+          setTimeSpent(parseInt(savedTime, 10));
+        }
+
+        const storedUserData = await AsyncStorage.getItem('userData');
+        if (storedUserData) {
+          const parsedUserData = JSON.parse(storedUserData);
+          setFirstName(parsedUserData.firstName); // Set the first name
+        }
+
+        // Load profile image
+        const storedProfileImage = await AsyncStorage.getItem('profileImage');
+        if (storedProfileImage) {
+          setProfileImage(storedProfileImage); // Set profile image if available
+        }
+
+      } catch (error) {
+        console.error('Error loading user data:', error);
       }
     };
 
-    loadTime();
+    loadUserData();
 
     // Listen for app state changes (foreground, background)
     const appStateListener = AppState.addEventListener('change', nextAppState => {
@@ -50,46 +69,51 @@ export default function Home() {
       timer = setInterval(() => {
         setTimeSpent(prevTime => {
           const newTime = prevTime + 1;
-          // Save the new time to AsyncStorage every second
+          // Save the new time to AsyncStorage every minute
           AsyncStorage.setItem('timeSpent', newTime.toString());
+
+          // Check if timeSpent exceeds 60 minutes, then show alert
+          if (newTime >= 60) {
+            Alert.alert(
+              'Warning',
+              'You have spent a lot of time on the app. It’s important to take breaks for your health!',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    // Reset the time to 0 after alert is acknowledged
+                    setTimeSpent(0);
+                    AsyncStorage.setItem('timeSpent', '0');
+                  },
+                },
+              ],
+              { cancelable: false }
+            );
+            clearInterval(timer); // Stop the timer after 60 minutes
+          }
+
           return newTime;
         });
       }, 60000); // Update every minute (60000ms)
     }
 
     return () => {
-      clearInterval(timer); // Clean up the timer if the component unmounts or app goes background
+      clearInterval(timer);
     };
   }, [appState, timeSpent]);
 
-  // Handle Reset when app is reopened
-  useEffect(() => {
-    if (appState === 'inactive' || appState === 'background') {
-      // Optionally save the time or stop tracking when the app goes into the background
-      AsyncStorage.setItem('timeSpent', timeSpent.toString());
-    }
-
-    if (appState === 'active' && timeSpent >= 60) {
-      // If 60 minutes are completed, stop the timer
-      clearInterval();
-    }
-  }, [appState, timeSpent]);
-
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Static Header Section */}
+    <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greetingText}>Hi, Zain</Text>
+          <Text style={styles.greetingText}>Hi, {firstName}</Text>
           <Text style={styles.subText}>Let’s start learning</Text>
         </View>
         <Image
-          source={require('../../assets/images/illustration 01.png')}
+          source={profileImage ? { uri: profileImage } : require('../../assets/images/illustration 01.png')}
           style={styles.profileImage}
         />
       </View>
-
-      {/* Dynamic Learned Today Section */}
       <View style={styles.learnedTodaySection}>
         <View style={styles.learnedTodayLeft}>
           <Text style={styles.learnedTodayTitle}>Learned today</Text>
@@ -97,8 +121,8 @@ export default function Home() {
             {timeSpent}min <Text style={styles.learnedTodayTotal}>/ 60min</Text>
           </Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('../screens/course')}>
-          <Text style={styles.myCoursesText}>My courses</Text>
+        <TouchableOpacity onPress={() => router.push('../screens/setting')}>
+          <Text style={styles.myCoursesText}>Settings</Text>
         </TouchableOpacity>
       </View>
 
@@ -140,7 +164,7 @@ export default function Home() {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -148,7 +172,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F6F8FB',
-    marginTop: -55,
+    marginTop: 0,
   },
   header: {
     flexDirection: 'row',

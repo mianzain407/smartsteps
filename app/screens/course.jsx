@@ -14,49 +14,42 @@ export default function CourseScreen() {
     {
       title: 'Alphabet',
       instructor: 'Welcome to ABC',
-      hours: 16,
       image: require('../../assets/images/Alphabet.jpg'),
       route: '../screens/Alphabet',  // Route for Alphabet course
     },
     {
       title: 'Number',
       instructor: 'Let count numbers',
-      hours: 16,
       image: require('../../assets/images/Number.jpg'),
       route: '../screens/number',  // Route for Number course
     },
     {
       title: 'Colours',
       instructor: 'Welcome to the world of colours',
-      hours: 14,
       image: require('../../assets/images/Colours.jpg'),
       route: '../screens/colours',  // Route for Colours course
     },
     {
       title: 'Fruits',
       instructor: 'Let see fruits together',
-      hours: 14,
       image: require('../../assets/images/Fruits.jpg'),
-      route: '../screens/Fruits',  // Route for Fruits course
+      route: '../screens/fruits',  // Route for Fruits course
     },
     {
       title: 'Animal',
       instructor: 'Learn about animals',
-      hours: 16,
       image: require('../../assets/images/Animal.png'),
-      route: 'animal',  // Route for Animal course
+      route: '../screens/animals',  // Route for Animal course
     },
     {
       title: 'Country',
       instructor: 'Learn about countries',
-      hours: 14,
       image: require('../../assets/images/Country.png'),
       route: '../screens/country',  // Route for Country course
     },
     {
       title: 'Geometry',
       instructor: 'Explore geometry shapes',
-      hours: 14,
       image: require('../../assets/images/Geometrys.png'),
       route: '../screens/geometry',  // Route for Geometry course
     },
@@ -79,9 +72,12 @@ export default function CourseScreen() {
   const handlequiz = () => {
     router.push('../screens/Quiz');
   };
+  const handlegame = () => {
+    router.push('../screens/test');
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Course</Text>
@@ -109,7 +105,7 @@ export default function CourseScreen() {
       <View style={styles.categoryContainer}>
         <View style={styles.categoryItem}>
           <Image source={require('../../assets/images/courseLearning.png')} style={styles.categoryImage} />
-          <TouchableOpacity style={styles.categoryButton}>
+          <TouchableOpacity onPress= {handlegame} style={styles.categoryButton}>
             <Text style={styles.categoryText}>Games</Text>
           </TouchableOpacity>
         </View>
@@ -143,14 +139,11 @@ export default function CourseScreen() {
             <View style={styles.courseInfo}>
               <Text style={styles.courseTitle}>{course.title}</Text>
               <Text style={styles.courseInstructor}>{course.instructor}</Text>
-              <View style={styles.courseFooter}>
-                <Text style={styles.courseHours}>{course.hours ? `${course.hours} hours` : 'N/A'}</Text>
-              </View>
             </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -159,8 +152,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
-    marginTop :-40,
-  },
+    marginTop:-30,
+    },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -290,7 +283,7 @@ const styles = StyleSheet.create({
   courseInstructor: {
     fontSize: 14,
     color: '#777',
-    marginTop: 4,
+    marginBottom: 14,
   },
   courseFooter: {
     flexDirection: 'row',

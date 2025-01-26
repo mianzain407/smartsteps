@@ -1,32 +1,212 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, Button } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as Speech from 'expo-speech'; // Import expo-speech
+import * as Speech from 'expo-speech';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Questions with images and correct answers
 const questions = [
   {
-    questionText: "Fruit",
+    questionText: "Apple",
     hintImages: [
-      require('../../assets/images/Fruits.jpg'),
-      require('../../assets/images/Country.png'),
-      require('../../assets/images/Alphabet.jpg'),
-      require('../../assets/images/Geometrys.png'),
+      require('../../assets/images/fruits/apple.png'),
+      require('../../assets/images/fruits/pineapple.png'),
+      require('../../assets/images/fruits/cherry.png'),
+      require('../../assets/images/fruits/litchi.png'),
     ],
-    correctAnswer: 0, // Index of the correct answer (image 1)
+    correctAnswer: 0,
   },
   {
-    questionText: "Animal",
+    questionText: "china",
     hintImages: [
-      require('../../assets/images/Country.png'),
-      require('../../assets/images/Colours.jpg'),
-      require('../../assets/images/Animal.png'),
-      require('../../assets/images/Geometrys.png'),
+      require('../../assets/images/country/Canada.png'),
+      require('../../assets/images/country/china.png'),
+      require('../../assets/images/country/Philippines.png'),
+      require('../../assets/images/country/italy.png'),
     ],
-    correctAnswer: 2, // Index of the correct answer (image 3)
+    correctAnswer: 1,
   },
-  // More questions as needed
+  {
+    questionText: "Lion",
+    hintImages: [
+      require('../../assets/images/animals/elephant.png'),
+      require('../../assets/images/animals/Lion.png'),
+      require('../../assets/images/animals/camel.png'),
+      require('../../assets/images/animals/sheep.png'),
+    ],
+    correctAnswer: 1,
+  },
+  {
+    questionText: "litchi",
+    hintImages: [
+      require('../../assets/images/fruits/apple.png'),
+      require('../../assets/images/fruits/pineapple.png'),
+      require('../../assets/images/fruits/cherry.png'),
+      require('../../assets/images/fruits/litchi.png'),
+    ],
+    correctAnswer: 3,
+  },
+  {
+    questionText: "canada",
+    hintImages: [
+      require('../../assets/images/country/Canada.png'),
+      require('../../assets/images/country/china.png'),
+      require('../../assets/images/country/Philippines.png'),
+      require('../../assets/images/country/italy.png'),
+    ],
+    correctAnswer: 0,
+  },
+  {
+    questionText: "sheep",
+    hintImages: [
+      require('../../assets/images/animals/elephant.png'),
+      require('../../assets/images/animals/Lion.png'),
+      require('../../assets/images/animals/camel.png'),
+      require('../../assets/images/animals/sheep.png'),
+    ],
+    correctAnswer: 3,
+  },
+  {
+    questionText: "cross",
+    hintImages: [
+      require('../../assets/images/geomatry/diamond.png'),
+      require('../../assets/images/geomatry/cross.png'),
+      require('../../assets/images/geomatry/heart.png'),
+      require('../../assets/images/geomatry/triangle.png'),
+    ],
+    correctAnswer: 1,
+  },
+  {
+    questionText: "cherry",
+    hintImages: [
+      require('../../assets/images/fruits/apple.png'),
+      require('../../assets/images/fruits/pineapple.png'),
+      require('../../assets/images/fruits/cherry.png'),
+      require('../../assets/images/fruits/litchi.png'),
+    ],
+    correctAnswer: 2,
+  },
+  {
+    questionText: "italy",
+    hintImages: [
+      require('../../assets/images/country/Canada.png'),
+      require('../../assets/images/country/china.png'),
+      require('../../assets/images/country/Philippines.png'),
+      require('../../assets/images/country/italy.png'),
+    ],
+    correctAnswer: 3,
+  },
+  {
+    questionText: "elephant",
+    hintImages: [
+      require('../../assets/images/animals/elephant.png'),
+      require('../../assets/images/animals/Lion.png'),
+      require('../../assets/images/animals/camel.png'),
+      require('../../assets/images/animals/sheep.png'),
+    ],
+    correctAnswer: 0,
+  },
+  {
+    questionText: "tomato",
+    hintImages: [
+      require('../../assets/images/fruits/tomato.png'),
+      require('../../assets/images/fruits/pineapple.png'),
+      require('../../assets/images/fruits/cherry.png'),
+      require('../../assets/images/fruits/litchi.png'),
+    ],
+    correctAnswer: 0,
+  },
+  {
+    questionText: "pakistan",
+    hintImages: [
+      require('../../assets/images/country/Canada.png'),
+      require('../../assets/images/country/china.png'),
+      require('../../assets/images/country/Pakistan.png'),
+      require('../../assets/images/country/italy.png'),
+    ],
+    correctAnswer: 2,
+  },
+  {
+    questionText: "cow",
+    hintImages: [
+      require('../../assets/images/animals/elephant.png'),
+      require('../../assets/images/animals/Lion.png'),
+      require('../../assets/images/animals/cow.png'),
+      require('../../assets/images/animals/sheep.png'),
+    ],
+    correctAnswer: 2,
+  },
+  {
+    questionText: "heart",
+    hintImages: [
+      require('../../assets/images/geomatry/diamond.png'),
+      require('../../assets/images/geomatry/cross.png'),
+      require('../../assets/images/geomatry/heart.png'),
+      require('../../assets/images/geomatry/triangle.png'),
+    ],
+    correctAnswer: 2,
+  },
+  {
+    questionText: "orange",
+    hintImages: [
+      require('../../assets/images/fruits/apple.png'),
+      require('../../assets/images/fruits/orange.png'),
+      require('../../assets/images/fruits/cherry.png'),
+      require('../../assets/images/fruits/litchi.png'),
+    ],
+    correctAnswer: 1,
+  },
+  {
+    questionText: "uk",
+    hintImages: [
+      require('../../assets/images/country/Canada.png'),
+      require('../../assets/images/country/china.png'),
+      require('../../assets/images/country/United Kingdom.png'),
+      require('../../assets/images/country/italy.png'),
+    ],
+    correctAnswer: 2,
+  },
+  {
+    questionText: "chicken",
+    hintImages: [
+      require('../../assets/images/animals/chicken.png'),
+      require('../../assets/images/animals/Lion.png'),
+      require('../../assets/images/animals/camel.png'),
+      require('../../assets/images/animals/sheep.png'),
+    ],
+    correctAnswer: 0,
+  },
+  {
+    questionText: "cocunut",
+    hintImages: [
+      require('../../assets/images/fruits/apple.png'),
+      require('../../assets/images/fruits/pineapple.png'),
+      require('../../assets/images/fruits/coconut.png'),
+      require('../../assets/images/fruits/litchi.png'),
+    ],
+    correctAnswer: 2,
+  },
+  {
+    questionText: "cat",
+    hintImages: [
+      require('../../assets/images/animals/cat.png'),
+      require('../../assets/images/animals/Lion.png'),
+      require('../../assets/images/animals/camel.png'),
+      require('../../assets/images/animals/sheep.png'),
+    ],
+    correctAnswer: 0,
+  },
+  {
+    questionText: "cross",
+    hintImages: [
+      require('../../assets/images/geomatry/diamond.png'),
+      require('../../assets/images/geomatry/cross.png'),
+      require('../../assets/images/geomatry/heart.png'),
+      require('../../assets/images/geomatry/triangle.png'),
+    ],
+    correctAnswer: 1,
+  },
 ];
 
 export default function GameScreen() {
@@ -35,67 +215,62 @@ export default function GameScreen() {
   const [isGameFinished, setIsGameFinished] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(questions[0]);
 
-  // Function to handle text-to-speech for the current question
+  // Speak with a 200ms delay
   const handleSpeak = () => {
-    Speech.speak(currentQuestion.questionText, {
-      language: 'en',
-      pitch: 1,
-      rate: 1,
-    });
+    setTimeout(() => {
+      Speech.speak(currentQuestion.questionText, {
+        language: 'en',
+        pitch: 1,
+        rate: 1,
+      });
+    }, 400); // 200ms delay
   };
 
-  // Shuffle the images and set the correct answer
   const shuffleImages = (question) => {
     const shuffledImages = [...question.hintImages];
-    // Shuffle the images randomly
     for (let i = shuffledImages.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffledImages[i], shuffledImages[j]] = [shuffledImages[j], shuffledImages[i]];
     }
-
-    // After shuffling, set the correct answer based on the shuffled images
     const correctAnswerIndex = shuffledImages.indexOf(question.hintImages[question.correctAnswer]);
     return { ...question, hintImages: shuffledImages, correctAnswer: correctAnswerIndex };
   };
 
-  // Function to handle the answer selection
   const handleAnswerSelect = (index) => {
     if (index === currentQuestion.correctAnswer) {
       setScore(score + 1);
     } else {
-      Alert.alert('Wrong!', 'Try Luck Next Time');
+      Alert.alert('Wrong!');
     }
-
-    // Automatically move to the next question after selection
     if (currentQuestionIndex < questions.length - 1) {
       const nextQuestion = shuffleImages(questions[currentQuestionIndex + 1]);
       setCurrentQuestion(nextQuestion);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      setIsGameFinished(true); // End the game when there are no more questions
+      setIsGameFinished(true);
     }
   };
 
-  // Navigate to next question manually
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      const nextQuestion = shuffleImages(questions[currentQuestionIndex + 1]);
-      setCurrentQuestion(nextQuestion);
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+  const handleGameEnd = async () => {
+    try {
+      const storedScores = await AsyncStorage.getItem('quizScores');
+      const scores = storedScores ? JSON.parse(storedScores) : [];
+      
+      scores.push(score);
+      
+      // Keep only the latest 10 scores
+      if (scores.length > 10) {
+        scores.shift(); // Remove the oldest score
+      }
+      
+      await AsyncStorage.setItem('quizScores', JSON.stringify(scores));
+    } catch (error) {
+      console.error('Error saving score:', error);
     }
   };
-
-  // Navigate to previous question manually
-  const handlePrevQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      const prevQuestion = shuffleImages(questions[currentQuestionIndex - 1]);
-      setCurrentQuestion(prevQuestion);
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
-
-  // Restart game
+  
   const handleRestartGame = () => {
+    handleGameEnd();
     setCurrentQuestionIndex(0);
     setScore(0);
     setIsGameFinished(false);
@@ -103,26 +278,27 @@ export default function GameScreen() {
     setCurrentQuestion(firstQuestion);
   };
 
+  useEffect(() => {
+    handleSpeak();
+  }, [currentQuestion]);
+
   return (
     <SafeAreaView style={styles.container}>
       {isGameFinished ? (
         <View style={styles.resultContainer}>
-          <Text style={styles.resultText}>Game Over</Text>
+          <Text style={styles.resultText}>Finish</Text>
           <Text style={styles.scoreText}>Your Score: {score}/{questions.length}</Text>
           <Button title="Restart" onPress={handleRestartGame} />
         </View>
       ) : (
         <>
-          {/* Display current question number */}
           <Text style={styles.questionCountText}>
             Question {currentQuestionIndex + 1}/{questions.length}
           </Text>
-
           <TouchableOpacity style={styles.speakButton} onPress={handleSpeak}>
             <MaterialIcons name="volume-up" size={30} color="white" />
             <Text style={styles.speakText}>Tap to Speak</Text>
           </TouchableOpacity>
-
           <View style={styles.hintsContainer}>
             {currentQuestion.hintImages.map((image, index) => (
               <TouchableOpacity key={index} onPress={() => handleAnswerSelect(index)} style={styles.hintWrapper}>
@@ -130,17 +306,7 @@ export default function GameScreen() {
               </TouchableOpacity>
             ))}
           </View>
-
           <Text style={styles.instructionText}>Select the correct hint above!</Text>
-
-          <View style={styles.navigationContainer}>
-            <TouchableOpacity style={styles.arrowButton} onPress={handlePrevQuestion}>
-              <MaterialIcons name="arrow-back" size={30} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.arrowButton} onPress={handleNextQuestion}>
-              <MaterialIcons name="arrow-forward" size={30} color="white" />
-            </TouchableOpacity>
-          </View>
         </>
       )}
     </SafeAreaView>
@@ -154,6 +320,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#F5F5F5',
+    marginTop: -40,
   },
   questionCountText: {
     fontSize: 18,
@@ -176,19 +343,21 @@ const styles = StyleSheet.create({
   },
   hintsContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap', // Allows wrapping the images in rows
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     width: '100%',
     marginBottom: 20,
+    height: 300, // Increased height for the container
   },
   hintWrapper: {
-    width: '48%', // To make two images per row, leaving space for margin
+    width: '48%',
     marginBottom: 10,
-    marginHorizontal: '1%', // Adds margin between images
+    marginHorizontal: '1%',
+    height: 150, // Adjusted height for each option
   },
   hintImage: {
-    width: '100%', // Make image take up the full width of its container
-    height: 120,
+    width: '100%',
+    height: '100%',
     borderRadius: 10,
   },
   instructionText: {
@@ -214,7 +383,7 @@ const styles = StyleSheet.create({
   },
   navigationContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     width: '100%',
     marginTop: 20,
   },

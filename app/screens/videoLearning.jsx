@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 5,
     backgroundColor: '#F5FCFF',
+    marginTop:0,
   },
   videoContainer: {
     width: '100%',

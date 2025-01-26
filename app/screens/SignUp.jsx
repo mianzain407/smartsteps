@@ -7,55 +7,86 @@ import {
   StyleSheet,
   Alert,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 const { width, height } = Dimensions.get('window');
 
 export default function SignUpScreen() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+  });
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isAgreed, setIsAgreed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
+  // Update form data
+  const handleInputChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  // Toggle password visibility
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
 
-  const handleSignUp = async () => {
+  // Validate inputs
+  const validateInputs = () => {
+    const { firstName, lastName, email, password } = formData;
     if (!firstName || !lastName) {
-      Alert.alert('Input Error', 'Please enter your full name');
-      return;
+      return 'Please enter your full name.';
     }
-    if (!email) {
-      Alert.alert('Input Error', 'Please enter your email');
-      return;
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      return 'Please enter a valid email address.';
     }
-
-    if (!password) {
-      Alert.alert('Input Error', 'Please enter your password');
-      return;
+    if (!password || password.length < 6) {
+      return 'Password must be at least 6 characters.';
     }
-
     if (!isAgreed) {
-      Alert.alert('', 'Please agree to the terms and conditions');
+      return 'Please agree to the terms and conditions.';
+    }
+    return null;
+  };
+
+  // Handle sign-up logic
+  const handleSignUp = async () => {
+    const error = validateInputs();
+    if (error) {
+      Alert.alert('Validation Error', error);
       return;
     }
+
+    setIsLoading(true);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Firebase authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
       console.log('User registered:', userCredential.user);
 
-      // Navigate to the success screen after sign-up
-      router.push('../screens/success');
+      // Save user data (excluding password for security reasons) to AsyncStorage
+      const { firstName, lastName, email } = formData;
+      const userData = { firstName, lastName, email };
+
+      await AsyncStorage.setItem('userData', JSON.stringify(userData)); // Store user data in AsyncStorage
+
+      // Navigate to the Login screen after successful account creation
+      router.replace('/screens/Login'); // Adjust the path
+
     } catch (error) {
       console.error('Sign Up Error:', error.message);
       if (error.code === 'auth/email-already-in-use') {
@@ -67,11 +98,14 @@ export default function SignUpScreen() {
       } else {
         Alert.alert('Error', 'Something went wrong. Please try again.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Navigate to Login screen
   const handleLogin = () => {
-    router.push('../screens/Login');
+    router.push('/screens/Login');
   };
 
   return (
@@ -86,8 +120,8 @@ export default function SignUpScreen() {
             <TextInput
               style={styles.nameInput}
               placeholder="First Name"
-              value={firstName}
-              onChangeText={setFirstName}
+              value={formData.firstName}
+              onChangeText={(value) => handleInputChange('firstName', value)}
             />
           </View>
           <View style={styles.nameInputWrapper}>
@@ -95,8 +129,8 @@ export default function SignUpScreen() {
             <TextInput
               style={styles.nameInput}
               placeholder="Last Name"
-              value={lastName}
-              onChangeText={setLastName}
+              value={formData.lastName}
+              onChangeText={(value) => handleInputChange('lastName', value)}
             />
           </View>
         </View>
@@ -106,8 +140,8 @@ export default function SignUpScreen() {
           style={styles.input}
           placeholder="Enter your email"
           keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
+          value={formData.email}
+          onChangeText={(value) => handleInputChange('email', value)}
         />
 
         <Text style={styles.label}>Password</Text>
@@ -116,8 +150,8 @@ export default function SignUpScreen() {
             style={styles.passwordInput}
             placeholder="Enter your password"
             secureTextEntry={!isPasswordVisible}
-            value={password}
-            onChangeText={setPassword}
+            value={formData.password}
+            onChangeText={(value) => handleInputChange('password', value)}
           />
           <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
             <MaterialIcons
@@ -142,8 +176,16 @@ export default function SignUpScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-          <Text style={styles.signUpButtonText}>Create account</Text>
+        <TouchableOpacity
+          style={styles.signUpButton}
+          onPress={handleSignUp}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.signUpButtonText}>Create account</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.footerContainer}>
@@ -260,18 +302,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   footerContainer: {
+    marginTop: height * 0.02,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: height * 0.02,
   },
   footerText: {
-    fontSize: Math.min(width * 0.04, 14),
+    fontSize: Math.min(width * 0.035, 12),
     color: '#8D99AE',
   },
   loginText: {
     color: '#3F3DFF',
+    fontSize: Math.min(width * 0.035, 12),
     fontWeight: 'bold',
-    fontSize: Math.min(width * 0.04, 14),
   },
 });

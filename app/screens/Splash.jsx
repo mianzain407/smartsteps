@@ -1,26 +1,41 @@
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { onAuthStateChanged } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { auth } from '../firebaseConfig'; // Adjust the path if needed
 
 export default function SplashScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in, navigate to Home screen
-        router.replace('/screens/home');  // Correct path
-      } else {
-        // No user is signed in, navigate to Sign Up screen
-        router.replace('/screens/SignUp');  // Correct path
-      }
-    });
+    const checkAppState = async () => {
+      try {
+        // Check if user token exists in AsyncStorage
+        const userToken = await AsyncStorage.getItem('userToken');
+        
+        if (userToken) {
+          // Token is available, navigate to the Home screen
+          router.replace('/screens/home'); // Adjust the path if needed
+          return;
+        }
 
-    // Cleanup subscription on unmount
-    return unsubscribe;
-  }, []);
+        // If no token, check onboarding status
+        const isOnboarded = await AsyncStorage.getItem('isOnboarded');
+        
+        if (isOnboarded !== 'true') {
+          // If not onboarded, navigate to the first onboarding screen
+          router.replace('/screens/Onboarding1'); // Adjust the path if needed
+        } else {
+          // If user is not onboarded but has no token, navigate to Login screen
+          router.replace('/screens/LogIn'); // Adjust the path if needed
+        }
+
+      } catch (error) {
+        console.error('Error checking user token or onboarding status:', error);
+      }
+    };
+
+    checkAppState();
+  }, [router]);
 
   return (
     <View style={styles.container}>
